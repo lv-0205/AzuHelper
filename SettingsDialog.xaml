@@ -1,0 +1,135 @@
+<Window x:Class="AzuHelper_v2.SettingsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="Settings" Height="760" Width="600" WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+		Background="{StaticResource Brush.Bg}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="{StaticResource Brush.Surface}" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,14">
+            <StackPanel>
+                <TextBlock FontSize="22" FontWeight="SemiBold" Text="Settings" />
+                <TextBlock Margin="0,4,0,0" Foreground="{StaticResource Brush.TextMuted}" Text="Defaults for timesheet and email." />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Background="{StaticResource Brush.Surface}" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1" CornerRadius="10" Padding="16">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="170" />
+                        <ColumnDefinition Width="300" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Name" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Vorname" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Vorname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Stammnummer" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Stammnummer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Berufsgruppe" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Berufsgruppe, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Ausbilder" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Ausbilder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Arbeitsbeginn (HH:mm)" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Arbeitsbeginn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Arbeitsende (HH:mm)" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Arbeitsende, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="7" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Quickfill Start (HH:mm)" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding QuickFillStart, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="8" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Quickfill Ende (HH:mm)" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding QuickFillEnd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="9" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Quickfill Tage" Margin="0,0,10,10" />
+                    <StackPanel Grid.Row="9" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10" >
+                        <CheckBox Content="Mo" IsChecked="{Binding QuickFillMonday, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                        <CheckBox Content="Di" IsChecked="{Binding QuickFillTuesday, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                        <CheckBox Content="Mi" IsChecked="{Binding QuickFillWednesday, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                        <CheckBox Content="Do" IsChecked="{Binding QuickFillThursday, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                        <CheckBox Content="Fr" IsChecked="{Binding QuickFillFriday, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="10" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Region" Margin="0,0,10,10" />
+                    <ComboBox Grid.Row="10" Grid.Column="1" SelectedItem="{Binding Region, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" HorizontalAlignment="Stretch">
+                        <ComboBox.Items>
+                            <sys:String>Baden-Württemberg</sys:String>
+                            <sys:String>Bayern</sys:String>
+                            <sys:String>Berlin</sys:String>
+                            <sys:String>Brandenburg</sys:String>
+                            <sys:String>Bremen</sys:String>
+                            <sys:String>Hamburg</sys:String>
+                            <sys:String>Hessen</sys:String>
+                            <sys:String>Mecklenburg-Vorpommern</sys:String>
+                            <sys:String>Niedersachsen</sys:String>
+                            <sys:String>Nordrhein-Westfalen</sys:String>
+                            <sys:String>Rheinland-Pfalz</sys:String>
+                            <sys:String>Saarland</sys:String>
+                            <sys:String>Sachsen</sys:String>
+                            <sys:String>Sachsen-Anhalt</sys:String>
+                            <sys:String>Schleswig-Holstein</sys:String>
+                            <sys:String>Thüringen</sys:String>
+                        </ComboBox.Items>
+                    </ComboBox>
+
+                    <TextBlock Grid.Row="11" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Mail To" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="11" Grid.Column="1" Text="{Binding MailTo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="12" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Mail CC" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="12" Grid.Column="1" Text="{Binding MailCc, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="13" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Outlook Signatur" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="13" Grid.Column="1" Text="{Binding OutlookSignaturName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="14" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Mail Subject" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="14" Grid.Column="1" Text="{Binding MailSubjectTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="15" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Mail Body" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="15" Grid.Column="1" Text="{Binding MailBodyTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" AcceptsReturn="True" TextWrapping="Wrap" Height="110" />
+
+                    <TextBlock Grid.Row="16" Grid.Column="0" Foreground="{StaticResource Brush.TextMuted}" Text="Filename" Margin="0,0,10,10" />
+                    <TextBox Grid.Row="16" Grid.Column="1" Text="{Binding FileNameTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                    <TextBlock Grid.Row="17" Grid.Column="0" Grid.ColumnSpan="2" Foreground="{StaticResource Brush.TextMuted}" Text="Variables: {name}, {vorname}, {fullname}, {week}, {kw}, {year}, {date}" />
+                </Grid>
+            </ScrollViewer>
+        </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+            <Button Width="110" IsCancel="True" Content="Cancel" Margin="0,0,10,0" />
+            <Button Width="140" IsDefault="True" Style="{StaticResource AccentButton}" Content="Save" Click="Save_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

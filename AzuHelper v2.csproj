@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>AzuHelper_v2</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>src\media\AzuHelp.ico</ApplicationIcon>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.102.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="src\tmp.xlsx" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="src\media\AzuHelp.ico" />
+  </ItemGroup>
+
+</Project>
