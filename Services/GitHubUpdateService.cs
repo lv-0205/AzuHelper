@@ -53,7 +53,7 @@ public sealed class GitHubUpdateService
             return UpdateResult.UpToDate();
         }
 
-        var asset = SelectAsset(release, config.GitHubAssetName);
+        var asset = SelectAsset(release);
         if (asset is null)
         {
             return UpdateResult.Failed("Kein passendes Update-Asset gefunden.");
@@ -150,15 +150,8 @@ public sealed class GitHubUpdateService
         return version is null ? null : new Version(version.Major, version.Minor, version.Build, version.Revision);
     }
 
-    private static GitHubAsset? SelectAsset(GitHubRelease release, string? preferredName)
-    {
-        if (!string.IsNullOrWhiteSpace(preferredName))
-        {
-            return release.Assets.FirstOrDefault(asset => string.Equals(asset.Name, preferredName, StringComparison.OrdinalIgnoreCase));
-        }
-
-        return release.Assets.FirstOrDefault(asset => asset.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));
-    }
+    private static GitHubAsset? SelectAsset(GitHubRelease release)
+        => release.Assets.FirstOrDefault(asset => asset.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));
 
     private static async Task DownloadAssetAsync(string url, string destination, CancellationToken cancellationToken)
     {

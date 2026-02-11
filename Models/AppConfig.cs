@@ -74,10 +74,10 @@ public sealed class AppConfig
     public string FileNameTemplate { get; set; } = "Arbeitszeiterfassung_{name}{vorname}_KW{week}.xlsx";
 
     [JsonPropertyName("GITHUB_OWNER")]
-    public string GitHubOwner { get; set; } = string.Empty;
+    public string GitHubOwner { get; set; } = "lv-0205";
 
     [JsonPropertyName("GITHUB_REPO")]
-    public string GitHubRepo { get; set; } = string.Empty;
+    public string GitHubRepo { get; set; } = "AzuHelper";
 
     [JsonPropertyName("GITHUB_ASSET_NAME")]
     public string GitHubAssetName { get; set; } = string.Empty;
