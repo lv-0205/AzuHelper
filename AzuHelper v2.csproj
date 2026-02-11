@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include=".github\copilot-instructions.md" />
     <None Include="src\tmp.xlsx" CopyToOutputDirectory="PreserveNewest" />
     <None Include="src\media\AzuHelp.ico" />
   </ItemGroup>

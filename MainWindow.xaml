@@ -26,8 +26,35 @@
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Update" Command="{Binding CheckUpdateCommand}" Margin="0,0,10,0" />
-                        <Button Content="Settings" Command="{Binding OpenSettingsCommand}" />
+                        <Button Command="{Binding CheckUpdateCommand}" Margin="0,0,10,0" Padding="8" FontSize="14">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Button.Style>
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE72C;">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{StaticResource Brush.Text}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource Brush.Accent}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Button>
+                        <Button Content="Settings" Command="{Binding OpenSettingsCommand}" Padding="18,8" FontSize="14" />
                     </StackPanel>
                     <TextBlock Margin="0,6,0,0" FontSize="12" Foreground="{StaticResource Brush.TextMuted}"
                                Text="{Binding UpdateStatusText}"

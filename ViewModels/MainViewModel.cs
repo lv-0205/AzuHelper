@@ -242,6 +242,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
+        await EnsureInitializedAsync().ConfigureAwait(false);
+
         await Application.Current.Dispatcher.InvokeAsync(() =>
         {
             IsUpdating = true;
@@ -263,9 +265,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 await Application.Current.Dispatcher.InvokeAsync(() => Application.Current.Shutdown());
             }
         }
-        catch
+        catch (Exception ex)
         {
-            await Application.Current.Dispatcher.InvokeAsync(() => UpdateStatusText = "Update fehlgeschlagen.");
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+                UpdateStatusText = $"Update fehlgeschlagen: {ex.Message}");
         }
         finally
         {

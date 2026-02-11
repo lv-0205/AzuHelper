@@ -1,10 +1,10 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using AzuHelper_v2.Models;
 
 namespace AzuHelper_v2.Services;
@@ -16,6 +16,7 @@ public sealed class GitHubUpdateService
     public GitHubUpdateService(HttpClient? httpClient = null)
     {
         _httpClient = httpClient ?? new HttpClient();
+        _httpClient.Timeout = TimeSpan.FromMinutes(5);
         if (!_httpClient.DefaultRequestHeaders.UserAgent.Any())
         {
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("AzuHelper_v2");
@@ -36,7 +37,7 @@ public sealed class GitHubUpdateService
             return UpdateResult.Failed("Release konnte nicht geladen werden.");
         }
 
-        var latestVersion = ParseVersion(release.TagName);
+        var latestVersion = ParseVersion(release.TagName, release.Name);
         if (latestVersion is null)
         {
             return UpdateResult.Failed("Release-Version ist ungültig.");
@@ -64,21 +65,12 @@ public sealed class GitHubUpdateService
         Directory.CreateDirectory(updateRoot);
 
         var downloadPath = Path.Combine(updateRoot, asset.Name);
-        await DownloadAssetAsync(asset.DownloadUrl, downloadPath, cancellationToken).ConfigureAwait(false);
+        await DownloadAssetAsync(asset.DownloadUrl, downloadPath, progress, cancellationToken).ConfigureAwait(false);
 
         if (!downloadPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
         {
             return UpdateResult.Failed("Update-Asset muss eine ZIP-Datei sein.");
         }
-
-        var extractPath = Path.Combine(updateRoot, "extracted");
-        if (Directory.Exists(extractPath))
-        {
-            Directory.Delete(extractPath, true);
-        }
-        ZipFile.ExtractToDirectory(downloadPath, extractPath, true);
-
-        var sourcePath = ResolveExtractRoot(extractPath);
         var exePath = Process.GetCurrentProcess().MainModule?.FileName;
         if (string.IsNullOrWhiteSpace(exePath))
         {
@@ -91,13 +83,11 @@ public sealed class GitHubUpdateService
             return UpdateResult.Failed("Zielverzeichnis konnte nicht ermittelt werden.");
         }
 
-        if (!File.Exists(Path.Combine(sourcePath, Path.GetFileName(exePath))))
-        {
-            return UpdateResult.Failed("Update-Paket enthält keine ausführbare Datei.");
-        }
-
+        var extractPath = Path.Combine(updateRoot, "extracted");
+        progress?.Report("Bereite Installation vor...");
         var scriptPath = Path.Combine(updateRoot, $"update-{Process.GetCurrentProcess().Id}.cmd");
-        WriteUpdateScript(scriptPath, sourcePath, targetDir, exePath, Process.GetCurrentProcess().Id);
+        var ps1Path = Path.ChangeExtension(scriptPath, ".ps1");
+        WriteUpdateScript(scriptPath, ps1Path, downloadPath, extractPath, targetDir, exePath, Process.GetCurrentProcess().Id);
 
         return UpdateResult.ReadyToApply(scriptPath, latestVersion.ToString());
     }
@@ -128,20 +118,16 @@ public sealed class GitHubUpdateService
         return await JsonSerializer.DeserializeAsync<GitHubRelease>(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    private static Version? ParseVersion(string? tagName)
+    private static Version? ParseVersion(string? tagName, string? releaseName)
     {
-        if (string.IsNullOrWhiteSpace(tagName))
+        var source = string.IsNullOrWhiteSpace(tagName) ? releaseName : tagName;
+        if (string.IsNullOrWhiteSpace(source))
         {
             return null;
         }
 
-        var trimmed = tagName.Trim();
-        if (trimmed.StartsWith("v", StringComparison.OrdinalIgnoreCase))
-        {
-            trimmed = trimmed[1..];
-        }
-
-        return Version.TryParse(trimmed, out var version) ? version : null;
+        var match = Regex.Match(source, @"\d+(\.\d+){0,3}");
+        return match.Success && Version.TryParse(match.Value, out var version) ? version : null;
     }
 
     private static Version? GetCurrentVersion()
@@ -153,30 +139,70 @@ public sealed class GitHubUpdateService
     private static GitHubAsset? SelectAsset(GitHubRelease release)
         => release.Assets.FirstOrDefault(asset => asset.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));
 
-    private static async Task DownloadAssetAsync(string url, string destination, CancellationToken cancellationToken)
+    private async Task DownloadAssetAsync(string url, string destination, IProgress<string>? progress, CancellationToken cancellationToken)
     {
-        using var response = await new HttpClient().GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+        using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
+        var contentLength = response.Content.Headers.ContentLength;
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
         await using var fileStream = new FileStream(destination, FileMode.Create, FileAccess.Write, FileShare.None);
-        await stream.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
-    }
 
-    private static string ResolveExtractRoot(string extractPath)
-    {
-        var directories = Directory.GetDirectories(extractPath);
-        var files = Directory.GetFiles(extractPath);
-        if (files.Length == 0 && directories.Length == 1)
+        var buffer = new byte[81920];
+        long totalRead = 0;
+        int read;
+        while (true)
         {
-            return directories[0];
+            var readTask = stream.ReadAsync(buffer, cancellationToken).AsTask();
+            var completed = await Task.WhenAny(readTask, Task.Delay(TimeSpan.FromSeconds(10), cancellationToken)).ConfigureAwait(false);
+            if (completed != readTask)
+            {
+                break;
+            }
+
+            read = await readTask.ConfigureAwait(false);
+            if (read <= 0)
+            {
+                break;
+            }
+
+            await fileStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
+            if (contentLength.HasValue)
+            {
+                totalRead += read;
+                var percent = Math.Clamp((int)(totalRead * 100 / contentLength.Value), 0, 99);
+                progress?.Report($"Lade Version {percent}%...");
+                if (totalRead >= contentLength.Value)
+                {
+                    break;
+                }
+            }
         }
 
-        return extractPath;
+        if (contentLength.HasValue)
+        {
+            progress?.Report("Lade Version 99%...");
+        }
+
+        progress?.Report("Download abgeschlossen...");
     }
 
-    private static void WriteUpdateScript(string scriptPath, string sourceDir, string targetDir, string exePath, int processId)
+    private static void WriteUpdateScript(string scriptPath, string ps1Path, string zipPath, string extractPath, string targetDir, string exePath, int processId)
     {
+        var escapedZip = EscapeForPowerShell(zipPath);
+        var escapedExtract = EscapeForPowerShell(extractPath);
+        var escapedTarget = EscapeForPowerShell(targetDir);
+        var ps1 = $"$zip = '{escapedZip}'{Environment.NewLine}" +
+                  $"$extract = '{escapedExtract}'{Environment.NewLine}" +
+                  "if (Test-Path $extract) { Remove-Item $extract -Recurse -Force }" + Environment.NewLine +
+                  "Expand-Archive -Path $zip -DestinationPath $extract -Force" + Environment.NewLine +
+                  "$dirs = Get-ChildItem -Path $extract -Directory" + Environment.NewLine +
+                  "$files = Get-ChildItem -Path $extract -File" + Environment.NewLine +
+                  "$src = if ($files.Count -eq 0 -and $dirs.Count -eq 1) { $dirs[0].FullName } else { $extract }" + Environment.NewLine +
+                  $"robocopy $src '{escapedTarget}' /E /R:1 /W:1 /NP /NFL /NDL /NJH /NJS | Out-Null" + Environment.NewLine;
+
+        File.WriteAllText(ps1Path, ps1);
+
         var script = $"@echo off{Environment.NewLine}" +
                      "setlocal" + Environment.NewLine +
                      $"set PID={processId}{Environment.NewLine}" +
@@ -186,15 +212,18 @@ public sealed class GitHubUpdateService
                      "  timeout /t 1 >nul" + Environment.NewLine +
                      "  goto wait" + Environment.NewLine +
                      ")" + Environment.NewLine +
-                     $"xcopy /E /Y /I \"{sourceDir}\" \"{targetDir}\"{Environment.NewLine}" +
+                     $"powershell -NoProfile -ExecutionPolicy Bypass -File \"{ps1Path}\"{Environment.NewLine}" +
                      $"start \"\" \"{exePath}\"{Environment.NewLine}" +
                      "exit /b 0" + Environment.NewLine;
 
         File.WriteAllText(scriptPath, script);
     }
 
+    private static string EscapeForPowerShell(string value) => value.Replace("'", "''");
+
     private sealed record GitHubRelease(
         [property: JsonPropertyName("tag_name")] string TagName,
+        [property: JsonPropertyName("name")] string? Name,
         [property: JsonPropertyName("assets")] List<GitHubAsset> Assets);
 
     private sealed record GitHubAsset(
